@@ -25,7 +25,6 @@ contract Event {
     }
 
     function withdraw(address payable _to) external onlyOwner {
-        require(msg.sender == owner, "You're not an owner");
         _to.transfer(address(this).balance);
     }
 }
