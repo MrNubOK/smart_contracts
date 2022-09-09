@@ -57,9 +57,9 @@ contract AucEngine {
     }
 
     function buy(uint index) external payable {
-        Auction memory cAuction = auctions[index];
+        Auction storage cAuction = auctions[index];
         require(!cAuction.stopped, "stopped");
-        require(cAuction.endsAt < block.timestamp, "ended");
+        require(cAuction.endsAt > block.timestamp, "ended");
         uint price = getPrice(index);
         require(msg.value >= price, "not enough funds!");
         cAuction.stopped = true;
