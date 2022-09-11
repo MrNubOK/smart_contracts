@@ -1,44 +1,25 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { Contract } = require("hardhat/internal/hardhat-network/stack-traces/model");
 
-describe("Payments", function () {
-    let acc1
-    let acc2
-    let payments
+describe("AucEngine test", () => {
+    let contract;
 
-    beforeEach(async function() {
-        [acc1, acc2] = await ethers.getSigners()
-        const Payments = await ethers.getContractFactory("Payments", acc1)
-        payments = await Payments.deploy()
-        await payments.deployed()
-        console.log(payments.address)
+    beforeEach(async () => {
+        [owner, seller, winner] = await ethers.getSigners()
+        const Contract = await ethers.getContractFactory("AucEngine", owner)
+        contract = await Contract.deploy()
+        await contract.deployed()
     })
 
-    it("Contract address is valid", async function () {
-        expect(payments.address).to.be.properAddress;
+    it("Sets owner", async () => {
+        currentOwner = await contract.owner()
+        console.log(currentOwner)
+        expect(currentOwner).to.eq(owner.address)
     })
 
-    it("Contract should have 0 on balance", async function () {
-        balance = await payments.getBalance();
-        expect(balance).to.eq(0)
-    })
-
-    it("should be possible to send funds", async function() {
-        sum = 100
-        msg = "hello"
-        const tx = await payments.connect(acc2).pay(msg, {value: sum})
-
-        await expect(() => tx)
-            .to.changeEtherBalance(acc2, -sum)
-
-        await expect(() => tx)
-            .to.changeEtherBalance(payments, sum)
-
-        await tx.wait()
-        
-        const newPayment = await payments.getPayment(acc2.address, 0)
-        expect(newPayment.message).to.eq(msg)
-        expect(newPayment.value).to.eq(sum)
-        expect(newPayment.from).to.eq(acc2.address)
+    it("Auction can be created", async () => {
+        // tx = await contract.createAuction("Test", 300000000, 10, 600)
+        // expect(tx => {})
     })
 })
