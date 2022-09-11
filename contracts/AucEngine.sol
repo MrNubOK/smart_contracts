@@ -3,72 +3,77 @@
 pragma solidity ^0.8.0;
 
 contract AucEngine {
-    address public owner;
+    address payable public owner;
     uint constant DURATION = 2 days;
     uint constant FEE = 10;
-
+   
     struct Auction {
+        string item;
         address payable seller;
-        uint startingPrice;
+        uint startPrice;
         uint finalPrice;
+        uint discountRate;
         uint startsAt;
         uint endsAt;
-        uint discountRate;
-        string item;
-        bool stopped;
+        bool ended;
     }
 
     Auction[] public auctions;
 
-    event AuctionCreated(uint index, string item, uint startingPrice, uint duration);
-    event AuctionEnded(uint index, string item, uint price, address winner);
-
     constructor() {
-        owner = msg.sender;
+        owner = payable(msg.sender);
     }
 
-    function createAuction(uint _startingPrice, uint _discountRate, string calldata _item, uint _duration) external {
+    event AuctionCreated(uint index, string item, uint startPrice, uint duration);
+    event AuctionEnded(uint index, string item, uint price, address winner);
+
+    function createAuction(string calldata _item, uint _startPrice, uint _discountRate, uint _duration) external {
         uint duration = _duration != 0 ? _duration : DURATION;
 
-        require(_startingPrice >= _discountRate * duration, "Incorrect starting price");
+        require(duration * _discountRate < _startPrice, "Incorrect starting price");
 
-        Auction memory newAction = Auction({
+        Auction memory action = Auction({
+            item: _item,
             seller: payable(msg.sender),
-            startingPrice: _startingPrice,
-            finalPrice: _startingPrice,
+            startPrice: _startPrice,
+            finalPrice: _startPrice,
             discountRate: _discountRate,
             startsAt: block.timestamp,
             endsAt: block.timestamp + duration,
-            item: _item,
-            stopped: false
+            ended: false
         });
 
-        auctions.push(newAction);
+        auctions.push(action);
 
-        emit AuctionCreated(auctions.length - 1, _item, _startingPrice, _duration);
+        emit AuctionCreated(auctions.length - 1, _item, _startPrice, duration);
     }
 
-    function getPrice(uint index) public view returns(uint) {
-        Auction memory cAuction = auctions[index];
-        require(!cAuction.stopped, "stopped");
-        uint elapsed = block.timestamp - cAuction.startsAt;
-        uint discount = cAuction.discountRate * elapsed;
-        return cAuction.startingPrice - discount;
+    function getPrice(uint _index) public view returns(uint) {
+        Auction memory auction = auctions[_index];
+        if (auction.ended) {
+            return auction.finalPrice;
+        }
+        return auction.startPrice - auction.discountRate * (block.timestamp - auction.startsAt);
     }
 
-    function buy(uint index) external payable {
-        Auction storage cAuction = auctions[index];
-        require(!cAuction.stopped, "stopped");
-        require(cAuction.endsAt > block.timestamp, "ended");
-        uint price = getPrice(index);
-        require(msg.value >= price, "not enough funds!");
-        cAuction.stopped = true;
-        cAuction.finalPrice = price;
+    function buy(uint _index) external payable {
+        Auction storage auction = auctions[_index];
+        require(!auction.ended, "Auction stopped");
+        require(auction.endsAt > block.timestamp, "Auction stopped");
+
+        uint price = getPrice(_index);
+        require(msg.value > price, "Not enough funds");
+
+        auction.finalPrice = price;
+        auction.endsAt = block.timestamp;
+        auction.ended = true;
+
         uint refund = msg.value - price;
         if (refund > 0) {
             payable(msg.sender).transfer(refund);
         }
-        cAuction.seller.transfer(price - ((price * FEE) / 100));
-        emit AuctionEnded(index, cAuction.item, price, msg.sender);
-    }
+
+        owner.transfer(price - ((price * FEE) / 100));
+        emit AuctionEnded(_index, auction.item, price, msg.sender);
+    } 
 }
