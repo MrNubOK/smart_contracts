@@ -77,6 +77,7 @@ describe("AucEngine test", () => {
         await delay(4000)
 
         const price = await contract.getPrice(0)
+        console.log(price)
     
         const buyTx = await contract.connect(winner).buy(0, {value: price})
 
@@ -89,7 +90,7 @@ describe("AucEngine test", () => {
         const priceAfterStop = await contract.getPrice(0)
 
         await expect(buyTx)
-            .to.changeEtherBalance(seller, 299999960 - (299999960 * 10) / 100)
+            .to.changeEtherBalance(seller, priceAfterStop - (priceAfterStop * 10) / 100)
 
         await expect(contract.connect(winner).buy(0, {value: price}))
             .to.be.revertedWith('Auction stopped')
@@ -99,7 +100,6 @@ describe("AucEngine test", () => {
         const item = "Test"
         const startPrice = 300000000
         const discount = 10
-        const duration = 1
 
         const createAucTx = await contract.connect(seller).createAuction(
             item, 
@@ -165,7 +165,6 @@ describe("AucEngine test", () => {
 
         const defaultDuration = await contract.DURATION()
         const calcalatedEndsAt = auction.startsAt.add(defaultDuration)
-        console.log(auction.endsAt, auction.startsAt, defaultDuration, calcalatedEndsAt)
 
         expect(auction.endsAt)
             .to.be.equal(calcalatedEndsAt)
