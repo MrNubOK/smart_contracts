@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 contract AucEngine {
     address payable public owner;
-    uint constant DURATION = 2 days;
+    uint constant public DURATION = 2 days;
     uint constant FEE = 10;
    
     struct Auction {
@@ -73,7 +73,7 @@ contract AucEngine {
             payable(msg.sender).transfer(refund);
         }
 
-        owner.transfer(price - ((price * FEE) / 100));
+        auction.seller.transfer(price - ((price * FEE) / 100));
         emit AuctionEnded(_index, auction.item, price, msg.sender);
     } 
 }
