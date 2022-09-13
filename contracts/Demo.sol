@@ -15,7 +15,7 @@ contract Demo {
         return logger.getPaymentData(_from, _index);
     }
 
-    function receiveFunds() external payable {
+    receive() external payable {
         logger.logPayment(msg.sender, msg.value);
     }
 }
