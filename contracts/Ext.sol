@@ -3,7 +3,19 @@
 pragma solidity ^0.8.0;
 
 library StrExt {
-    function compareStr(string memory str1, string memory str2) public pure returns(bool) {
+    function compareStr(string memory str1, string memory str2) internal pure returns(bool) {
         return keccak256(abi.encode(str1)) == keccak256(abi.encode(str2));
+    }
+}
+
+library ArrExt {
+    function arrayHas(uint[] memory arr, uint item) internal pure returns(bool) {
+        for (uint i = 0; i < arr.length; i++) {
+            if (arr[i] == item) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
