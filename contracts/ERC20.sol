@@ -89,10 +89,62 @@ contract ERC20 is IERC20 {
         balances[_from] -= _value;
         balances[_to] += _value;
         emit Transfer(_from, _to, _value);
-        return true;
     }
 
     function _beforeTransfer(address from, address to, uint amount) internal virtual {
         
+    }
+}
+
+contract RINAToken is ERC20 {
+    constructor(address store) ERC20("RINAToken", "RNA", 1000000, store) {}
+}
+
+contract RINAStore {
+    IERC20 public token;
+    address payable public owner;
+    event Bought(uint _amount, address indexed _buyer);
+    event Sold(uint _amount, address indexed _seller);
+
+    constructor() {
+        token = new RINAToken(address(this));
+        owner = payable(msg.sender);
+    }
+
+    modifier onlyOwner {
+        require(msg.sender == owner, "you're not an owner");
+        _;
+    }
+
+    receive() external payable {
+        uint tokensToBuy = msg.value;
+        require(tokensToBuy > 0, "not enough funds");
+
+        require(tokenBalance() > tokensToBuy, "not enough tokens in the store");
+
+        token.transfer(msg.sender, tokensToBuy);
+        emit Bought(tokensToBuy, msg.sender);
+    }
+
+    function sell(uint _amountToSell) external {
+        require(_amountToSell > 0, "Min value: 1 token");
+        require(token.balanceOf(msg.sender) >= _amountToSell);
+
+        uint allowance = token.allowance(msg.sender, address(this));
+        require(allowance >= _amountToSell, "Check allownce");
+
+        token.transferFrom(msg.sender, address(this), _amountToSell);
+
+        payable(msg.sender).transfer(_amountToSell);
+
+        emit Sold(_amountToSell, msg.sender);
+    }
+    
+    function tokenBalance() public view returns(uint) {
+        return token.balanceOf(address(this));
+    }
+
+    function withdrawComission() public onlyOwner {
+        owner.transfer(1);
     }
 }
