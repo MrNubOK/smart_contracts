@@ -89,6 +89,7 @@ contract ERC20 is IERC20 {
         balances[_from] -= _value;
         balances[_to] += _value;
         emit Transfer(_from, _to, _value);
+        return true;
     }
 
     function _beforeTransfer(address from, address to, uint amount) internal virtual {
