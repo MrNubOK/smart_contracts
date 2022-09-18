@@ -119,9 +119,9 @@ contract MDCStore {
 
     function sell(uint value) external {
         require(value > 0, "Min value is 1 token");
-        require(token.balanceOf(address(this)) >= value, "not enogh tokens on the balance");
+        require(token.balanceOf(msg.sender) >= value, "not enogh tokens on the balance");
 
-        require(token.allowance(address(this), msg.sender) >= value, "not enogh tokens allowed to sell");
+        require(token.allowance(msg.sender, address(this)) >= value, "not enogh tokens allowed to sell");
 
         token.transferFrom(msg.sender, address(this), value);
         payable(msg.sender).transfer(value); //1:1
