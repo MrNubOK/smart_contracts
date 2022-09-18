@@ -57,7 +57,7 @@ contract ERC201 is IERC201 {
     }
 
     function transfer(address _to, uint256 _value) external returns (bool) {
-        _beforeTransfer(msg.sender, _to, _value);
+        _beforeTransfer(msg.sender, _value);
         _balances[msg.sender] -= _value;
         _balances[_to] += _value;
         return true;
@@ -65,7 +65,7 @@ contract ERC201 is IERC201 {
 
     function transferFrom(address _from, address _to, uint256 _value) external returns (bool) {
         require(_allowances[_from][_to] >= _value, "not allowed");
-        _beforeTransfer(msg.sender, _to, _value);
+        _beforeTransfer(msg.sender, _value);
         _balances[msg.sender] -= _value;
         _balances[_to] += _value;
         emit Transfer(_from, _to, _value);
@@ -82,7 +82,7 @@ contract ERC201 is IERC201 {
         return _allowances[_owner][_spender];
     }
 
-    function _beforeTransfer(address from, address to, uint256 value) internal virtual {
+    function _beforeTransfer(address from, uint256 value) internal virtual {
         require(_balances[from] >= value, "not enough funds");
     }
 }
