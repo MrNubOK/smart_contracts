@@ -38,7 +38,7 @@ contract DutchAuction {
     }
 
     function nextBlock() external {
-
+        
     }
 
     function buy() external payable notStopped {

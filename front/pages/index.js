@@ -4,7 +4,9 @@ import { ethers } from "ethers"
 import { ConnectWallet } from "../components/ConnectWallet"
 
 import auctionAddress from "../contracts/DutchAuction-contracts-address.json"
-import auctionArtifact from "../contracts/DutchAuction.json"
+import auctionArtifact from "../contracts/DutchAuction-contract.json"
+import { WaitingForTransactionMessage } from "../components/WaitingForTransactionMessage"
+import { TransactionErrorMessage } from "../components/TransactionErrorMessage"
 
 const HARDHAT_NETWORK_ID = '31337'
 const ERROR_CODE_TX_REJECTED_BY_USER = 4001
@@ -18,7 +20,9 @@ export default class extends Component {
             txBeingSent: false, 
             networkError: null,
             transactionError: null,
-            balance: null
+            balance: null,
+            currentPrice: null,
+            stopped: false
         }
 
         this.state = this.initialState;
@@ -26,7 +30,7 @@ export default class extends Component {
 
     _connectWallet = async () => {
         if (window.ethereum === undefined) {
-            this.setState({networkError: "Pls, install MetaMusk"})
+            this.setState({networkError: "Pls, install MetaMask"})
             return
         }
 
@@ -55,8 +59,49 @@ export default class extends Component {
         )
 
         this.setState({
-            selectedAccount: selectedAddress
+            selectedAccount: selectedAddress,
         }, async () => await this.updateBalance())
+
+        if (await this.updateStopped()) { return }
+
+        this.startingPrice = await this._auction.startingPrice();
+        this.startAt = await this._auction.startAt() 
+        this.discountRate = await this._auction.discountRate();
+
+        this.checkPriceInterval = setInterval(() => {
+            const elapsed = ethers.BigNumber.from(
+                Math.floor(Date.now() / 1000)
+            ).sub(this.startAt)
+            const discount = this.discountRate.mul(elapsed)
+            const newPrice = this.startingPrice.sub(discount)
+            this.setState({
+                currentPrice: ethers.utils.formatEther(newPrice)
+            })
+        }, 1000)
+
+        const startBlockNumber = this._provider.getBlockNumber()
+        this._auction.on('Bought', (...args) => {
+            const event = args[args.length - 1]
+            if (event.blockNumber <= startBlockNumber) {
+                return
+            }
+
+            args[0], args[1], 
+        })
+    }
+
+    async updateStopped() {
+        const stopped = await this._auction.stopped()
+
+        if (stopped) {
+            clearInterval(this.checkPriceInterval)
+        }
+
+        this.setState({
+            stopped: stopped
+        })
+
+        return stopped;
     }
 
     async updateBalance() {
@@ -87,6 +132,43 @@ export default class extends Component {
         this.setState({networkError: null})
     }
 
+    _dissmissTransactionError = () => {
+        this.setState({transactionError: null})
+    }
+
+    buy = async () => {
+        const price = await this._auction.getPrice()
+        console.log(this.state.currentPrice, price.toString())
+        try {
+            const tx = await this._auction.buy({
+                value: ethers.utils.parseEther(this.state.currentPrice)
+            })
+            this.setState({
+                txBeingSent: tx.hash
+            })
+            await tx.wait()
+        } catch (err) {
+            if (this.transactionError === ERROR_CODE_TX_REJECTED_BY_USER) { return }
+            this.setState({transactionError: err})
+        } finally {
+            this.setState({txBeingSent: null})
+            await this.updateBalance() 
+            await this.updateStopped() 
+        }   
+    }
+
+    _getRpcErrorMessage(error) {
+        if (error.data) {
+            return error.data.message;
+        }
+
+        return error.message;
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.checkPriceInterval)
+    }
+
     render() {
         if (!this.state.selectedAccount) {
             return <ConnectWallet 
@@ -96,11 +178,36 @@ export default class extends Component {
             />
         }
 
+        if (this.state.stopped) {
+            return <p>Auction stopped</p>
+        }
+
         return (
             <>
                 {
+                    this.state.txBeingSent && 
+                        <WaitingForTransactionMessage txHash={this.state.txBeingSent} />
+                }
+
+                {
+                    this.state.transactionError && 
+                        <TransactionErrorMessage 
+                            message={this._getRpcErrorMessage(this.state.transactionError)} 
+                            dismiss={this._dissmissTransactionError}
+                        />
+                }
+
+                {
                     this.state.balance &&
                         <p>Your balance: {ethers.utils.formatEther(this.state.balance)} ETH</p>
+                }
+
+                {
+                    this.state.currentPrice &&
+                        <div>
+                            <p>Price: {this.state.currentPrice} ETH</p>
+                            <button onClick={this.buy}>Buy</button>
+                        </div>
                 }
             </>
         );
