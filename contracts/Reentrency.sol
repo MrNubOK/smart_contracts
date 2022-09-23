@@ -17,9 +17,9 @@ contract TestAutction {
         uint refundAmount = bidders[msg.sender];
 
         if (refundAmount > 0) {
+            bidders[msg.sender] = 0;
             (bool success, ) = msg.sender.call{value: refundAmount}("");
             require(success, "Transaction failed");
-            bidders[msg.sender] = 0;
         }
     }
 }

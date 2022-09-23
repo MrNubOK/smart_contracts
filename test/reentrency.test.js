@@ -38,8 +38,8 @@ describe("Reentrency test", () => {
         await refundTx.wait()
         balance = await auction.currencyBalance()
         
-        //Fuck, we'll find this piece of shit
+        //Fuck him, we fixed reentrency 
         expect(await auction.currencyBalance())
-            .to.be.eq(ethers.utils.parseEther("0.0"))
+            .to.be.eq(ethers.utils.parseEther("14.0"))
     })
 })
