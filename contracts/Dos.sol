@@ -7,6 +7,7 @@ contract Auction {
     mapping(address => uint) public bidders;
     address[] public allBidders;
     uint refundProgress;
+    address[] withFailedRefunds;
 
     constructor() {
         owner = msg.sender;
@@ -32,7 +33,9 @@ contract Auction {
             
             (bool success,) = bidder.call{value: bidders[bidder]}("");
 
-            require(success, "failed");
+            if (!success) {
+                withFailedRefunds.push(bidder);
+            }
 
             refundProgress++;
         }

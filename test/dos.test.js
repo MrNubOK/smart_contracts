@@ -23,7 +23,6 @@ describe("Dos test", () => {
         const bidTx2 = await auction.connect(bidder2).bid({value: ethers.utils.parseEther("3.0")})
         await bidTx2.wait() 
 
-
         expect (await auction.currentlyBalance())
             .to.be.eq(ethers.utils.parseEther("5.0"))
 
@@ -43,7 +42,6 @@ describe("Dos test", () => {
         const bidTx2 = await auction.connect(bidder2).bid({value: ethers.utils.parseEther("3.0")})
         await bidTx2.wait() 
 
-
         expect (await auction.currentlyBalance())
             .to.be.eq(ethers.utils.parseEther("5.0"))
 
@@ -55,6 +53,6 @@ describe("Dos test", () => {
         await auction.connect(auctionOwner).refund()
 
         expect (await auction.currentlyBalance())
-            .to.be.eq(ethers.utils.parseEther("0.0"))
+            .to.be.eq(ethers.utils.parseEther("0.000000000001"))
     })
 })
