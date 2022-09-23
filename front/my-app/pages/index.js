@@ -104,6 +104,10 @@ export default class extends Component {
   updateStopped = async () => {
     const stopped = await this._auction.stopped()
 
+    if(stopped) {
+      clearInterval(this.checkPriceInterval)
+    }
+
     this.setState({
       stopped: stopped
     })
@@ -206,11 +210,6 @@ export default class extends Component {
             message={this._getRpcErrorMessage(this.state.transactionError)}
             dismiss={this._dismissTransactionError}
           />
-        }
-
-        {
-          this.state.networkError &&
-            <div>{this.state.networkError}</div>
         }
 
         {
