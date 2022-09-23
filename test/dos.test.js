@@ -54,5 +54,10 @@ describe("Dos test", () => {
 
         expect (await auction.currentlyBalance())
             .to.be.eq(ethers.utils.parseEther("0.000000000001"))
+
+        //let's find our jerk
+        const donkeyFuckerAddress = await auction.withFailedRefunds(0)
+        const whatWeWillRefundToDonkeyFucker = await auction.bidders(donkeyFuckerAddress)
+        console.log(whatWeWillRefundToDonkeyFucker)
     })
 })

@@ -7,7 +7,7 @@ contract Auction {
     mapping(address => uint) public bidders;
     address[] public allBidders;
     uint refundProgress;
-    address[] withFailedRefunds;
+    address[] public withFailedRefunds;
 
     constructor() {
         owner = msg.sender;
