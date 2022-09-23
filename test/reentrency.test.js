@@ -33,13 +33,12 @@ describe("Reentrency test", () => {
         expect(await auction.currencyBalance())
             .to.be.eq(ethers.utils.parseEther("15.0"))
 
-        //Reentrency attack
-        const refundTx = await huyakerContract.connect(mamkinHuyaker).mamkinHuyakerIdeUboi()
-        await refundTx.wait()
-        balance = await auction.currencyBalance()
+        //Reentrency attack. Hah, try againg
+        await expect(huyakerContract.connect(mamkinHuyaker).mamkinHuyakerIdeUboi())
+            .to.be.revertedWith("Transaction failed")
         
         //Fuck him, we fixed reentrency 
         expect(await auction.currencyBalance())
-            .to.be.eq(ethers.utils.parseEther("14.0"))
+            .to.be.eq(ethers.utils.parseEther("15.0"))
     })
 })

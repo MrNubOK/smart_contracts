@@ -4,6 +4,14 @@ pragma solidity ^0.8.0;
 
 contract TestAutction {
     mapping (address => uint) public bidders;
+    bool isLocked;
+
+    modifier ReenrencyBlock {
+        require(!isLocked, "Reentrency block");
+        isLocked = true;
+        _;
+        isLocked = false;
+    }
 
     function bid() external payable {
         bidders[msg.sender] += msg.value;
@@ -13,7 +21,7 @@ contract TestAutction {
         return address(this).balance;
     }
 
-    function refund() external {
+    function refund() external ReenrencyBlock {
         uint refundAmount = bidders[msg.sender];
 
         if (refundAmount > 0) {
