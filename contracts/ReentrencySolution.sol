@@ -17,9 +17,9 @@ contract ReentrencyAuction {
         uint refundAmount = bidders[msg.sender];
 
         if (refundAmount >= 0) {
+            bidders[msg.sender] = 0;
             (bool result, ) = msg.sender.call{value: refundAmount}("");
             require(result, "Failed transaction. Try again");
-            bidders[msg.sender] = 0;
         }
     }
 }

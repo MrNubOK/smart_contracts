@@ -38,9 +38,10 @@ describe("ReentrencyAuction test", function() {
             .to.be.eq(ethers.utils.parseEther('7.0'))
 
         const tx4 = await huyakerContract.connect(mamkinHuyaker).proxyBid({value: ethers.utils.parseEther('1.0')})
-        const huyakerRefund = await huyakerContract.connect(mamkinHuyaker).mamkinHuyakerIdeUboi()
+        await expect(huyakerContract.connect(mamkinHuyaker).mamkinHuyakerIdeUboi())
+            .to.be.revertedWith("Failed transaction. Try again")
 
         expect(await auction.getCurrencyBalance())
-            .to.be.eq(ethers.utils.parseEther('0.0'))
+            .to.be.eq(ethers.utils.parseEther('8.0'))
     })
 })
