@@ -4,6 +4,14 @@ pragma solidity ^0.8.0;
 
 contract ReentrencyAuction {
     mapping(address => uint) bidders;
+    bool locked;
+
+    modifier lockReentrency() {
+        require(!locked, "Reentrency locked");
+        locked = true;
+        _;
+        locked = false;
+    }
 
     function getCurrencyBalance() external view returns(uint) {
         return address(this).balance;
@@ -13,7 +21,7 @@ contract ReentrencyAuction {
         bidders[msg.sender] += msg.value;
     }
 
-    function refund() external {
+    function refund() external lockReentrency {
         uint refundAmount = bidders[msg.sender];
 
         if (refundAmount >= 0) {
