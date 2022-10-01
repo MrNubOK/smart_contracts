@@ -19,7 +19,8 @@ describe("Privacy test", () => {
         const locked = await ethers.provider.getStorageAt(privacyContract.address, 0);
         console.log(locked)
 
-        const timestamp = await ethers.provider.getStorageAt(privacyContract.address, 1);
+        const bTimestamp = await ethers.provider.getStorageAt(privacyContract.address, 1);
+        const timestamp = Number(ethers.BigNumber.from(bTimestamp));
         console.log(timestamp)
 
         const flatteningDenominationAwkwardness = await ethers.provider.getStorageAt(privacyContract.address, 2);
