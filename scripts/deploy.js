@@ -19,18 +19,18 @@ async function main() {
   const [deployer] = await ethers.getSigners()
   console.log("Deploying with " + await deployer.getAddress())
 
-  const Auction = await ethers.getContractFactory("DutchAuction", deployer)
-  const auction = await Auction.deploy(
-    ethers.utils.parseEther("2.0"),
-    100,
-    "Test item"
-  )
+  const Tasks = await ethers.getContractFactory("Tasks", deployer)
+  const tasks = await Tasks.deploy()
   
-  await auction.deployed();
+  await tasks.deployed();
+
+  console.log("Contract address: " + tasks.address)
 
   saveContractFiles({
-    DutchAuction: auction
+    Tasks: tasks
   })
+
+  console.log(await tasks.callme());
 
   console.log(
     `Contract was successfully deployed`
