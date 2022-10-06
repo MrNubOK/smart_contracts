@@ -6,7 +6,7 @@ contract TimeLock {
     uint constant MINIMUM_DELAY = 10;
     uint constant MAXIMUM_DELAY = 1 days;
     address public owner;
-    string message;
+    string public message;
     uint amount;
 
     mapping (bytes32 => bool) public queue;
@@ -79,6 +79,7 @@ contract TimeLock {
     ) external payable onlyOwner returns(bytes memory) {
         require(_timestamp < block.timestamp, "Too early"); 
         require(_timestamp + MAXIMUM_DELAY > block.timestamp, "Too late");
+        require(_value == msg.value, "Incorrect sum");
 
         bytes32 txId = keccak256(abi.encode(
             _to, 
