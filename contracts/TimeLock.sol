@@ -77,8 +77,8 @@ contract TimeLock {
         uint _value,
         uint _timestamp
     ) external payable onlyOwner returns(bytes memory) {
-        require(_timestamp < block.timestamp, "Too early");
-        require(_timestamp > block.timestamp - MAXIMUM_DELAY, "Too late");
+        require(_timestamp < block.timestamp, "Too early"); 
+        require(_timestamp + MAXIMUM_DELAY > block.timestamp, "Too late");
 
         bytes32 txId = keccak256(abi.encode(
             _to, 
@@ -102,7 +102,7 @@ contract TimeLock {
             data = _data;
         }
 
-        (bool success, bytes memory resp) = _to.call{value: _value}("");
+        (bool success, bytes memory resp) = _to.call{value: _value}(data);
         require(success, "Failed");
 
         emit Executed(txId);
