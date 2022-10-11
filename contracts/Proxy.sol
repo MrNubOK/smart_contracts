@@ -63,3 +63,28 @@ contract V1 {
         return abi.encodeWithSelector(this.x.selector);
     }
 }
+
+contract V2 {
+    address public implementation;
+    uint public x;
+
+    function inc() external {
+        x += 1;
+    }
+
+    function dec() external {
+        x -= 1;
+    }
+
+    function encInc() external pure returns(bytes memory) {
+        return abi.encodeWithSelector(this.inc.selector);
+    }
+
+     function encDec() external pure returns(bytes memory) {
+        return abi.encodeWithSelector(this.dec.selector);
+    }
+
+    function encX() external pure returns(bytes memory) {
+        return abi.encodeWithSelector(this.x.selector);
+    }
+}
