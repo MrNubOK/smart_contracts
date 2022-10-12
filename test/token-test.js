@@ -8,7 +8,8 @@ describe("Upgradeable token", function () {
 
         const NFTFactory = await ethers.getContractFactory("MyToken");
         const token = await upgrades.deployProxy(NFTFactory, [], {
-            initializer: "initialize"
+            initializer: "initialize",
+            kind: 'uups'
         });
         await token.deployed()
 
@@ -22,5 +23,13 @@ describe("Upgradeable token", function () {
 
         expect(await token.balanceOf(deployer.address))
             .to.eq(1)
+
+        const NFTFactory2 = await ethers.getContractFactory("MyTokenV2");
+        const token2 = await upgrades.upgradeProxy(token.address, NFTFactory2);
+
+        expect(await token2.balanceOf(deployer.address))
+            .to.eq(1);
+
+        expect(await token2.demo()).to.be.true;
     })
 })
